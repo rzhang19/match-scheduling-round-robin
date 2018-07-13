@@ -19,11 +19,14 @@ public class ScheduleMaker {
       // constant values
       final int MAX_NUM_PLAYED = 4;
       final int MIN_TEAMS = 2;
+      final int DEFAULT_NUM_PLAYED = 1;
+      final boolean DEFAULT_RANDOM = true;
+      final int DEFAULT_WEIGHT_WEEK = 0;
       
       // settings for additional features
-      int numPlayed = 1;
-      boolean random = true;
-      int weightWeek = -1;
+      int numPlayed = DEFAULT_NUM_PLAYED;
+      boolean random = DEFAULT_RANDOM;
+      int weightWeek = DEFAULT_WEIGHT_WEEK;
       
       int input = 0;
       
@@ -32,7 +35,7 @@ public class ScheduleMaker {
       
       while (numTeams < MIN_TEAMS) {
          System.out.print("Enter the number of teams: ");
-         int numTeams = scan.nextInt();
+         numTeams = scan.nextInt();
          
          if (numTeams < MIN_TEAMS) {
             System.out.println("Number of teams must be positive");
@@ -47,6 +50,7 @@ public class ScheduleMaker {
          System.out.println("3 - edit whether Teams are weighted and add weeks for rivalry matches");
          System.out.println("4 - continue with generating schedule");
          input = scan.nextInt();
+         System.out.println();
          
          if (input < 1 || input > 4) {
             System.out.println("Invalid input, value must be between 1 and 4");
@@ -57,7 +61,7 @@ public class ScheduleMaker {
             int value = numPlayed;
             
             while (value != -1) {
-               System.out.println("Current value - " + value);
+               System.out.println("Current value: " + value);
                System.out.println("Enter the new value of the number of times each Team plays each other");
                System.out.println("Enter -1 to go back to the settings menu");
                System.out.println("Maximum value of " + MAX_NUM_PLAYED);
@@ -75,6 +79,8 @@ public class ScheduleMaker {
                   numPlayed = value;
                }
             }
+            
+            System.out.println();
          }
          
          else if (input == 2) {
@@ -82,7 +88,7 @@ public class ScheduleMaker {
             int value = random ? 1 : 0;
             
             while (value != -1) {
-               System.out.println("Current setting is " + (value == 1 ? "random" : "non-random"));
+               System.out.println("Current setting: " + (value == 1 ? "random" : "non-random"));
                System.out.println("Enter the new value of randomness");
                System.out.println("Enter 0 to set randomness to false (non-random)");
                System.out.println("Enter 1 to set randomness to true (random)");
@@ -94,13 +100,29 @@ public class ScheduleMaker {
                }
                
                else if (value == 1) {
-                  random = true;
+                  if (weightWeek != DEFAULT_WEIGHT_WEEK) {
+                     System.out.println("Weight week already set, setting randomness will set weight week to default");
+                     System.out.println("Enter 1 to override weight week with random generation");
+                     System.out.println("Enter any other number to keep weight week and skip random generation");
+                     int response = scan.nextInt();
+                     
+                     if (response == 1) {
+                        random = true;
+                        weightWeek = DEFAULT_WEIGHT_WEEK;
+                     }
+                  }
+                  
+                  else {
+                     random = true;
+                  }
                }
                
                else if (value == 0) {
                   random = false;
                }
             }
+            
+            System.out.println();
          }
          
          else if (input == 3) {
@@ -114,14 +136,15 @@ public class ScheduleMaker {
             }
             
             while (value != -1) {
-               System.out.println("Current weight week is " + (weightWeek != -1 ? weightWeek : "not set"));
+               System.out.println("Current weight week: " + (weightWeek != -1 ? weightWeek : "not set"));
                System.out.println("Enter the new weight week");
                System.out.println("Maximum value is " + finalWeek);
                System.out.println("Enter -1 to go back to the settings menu");
+               System.out.println("Enter 0 to set back to no weighted week");
                value = scan.nextInt();
                
-               if (value < -1 || value == 0) {
-                  System.out.println("Invalid input, value must be positive");
+               if (value < -1) {
+                  System.out.println("Invalid input, value must be positive or 0");
                }
                
                else if (value > finalWeek) {
@@ -129,9 +152,25 @@ public class ScheduleMaker {
                }
                
                else if (value != -1) {
-                  weightWeek = value;
+                  if (random) {
+                     System.out.println("Randomness already set, setting weight week will set random to false");
+                     System.out.println("Enter 1 to override randomness with weight week");
+                     System.out.println("Enter any other number to keep randomness and skip weight week");
+                     int response = scan.nextInt();
+                     
+                     if (response == 1) {
+                        weightWeek = value;
+                        random = false;
+                     }
+                  }
+                  
+                  else {
+                     weightWeek = value;
+                  }
                }
             }
+            
+            System.out.println();
          }
       }
       
@@ -163,7 +202,7 @@ public class ScheduleMaker {
       
       // we're going to store them in a string, but in the real SMG,
       // we use an array of Match objects to store them
-      String[] matchups = new String[numTeams * (numTeams - 1) / 2 * numPlayed];
+      String[] matchups = new String[numTeams * (numTeams - 1) / 2];
       int matchCount = 0;
       int week = 1;
       
@@ -209,6 +248,26 @@ public class ScheduleMaker {
          
          System.out.println();
          week++;
+      }
+      
+      String[] finalMatchups = new String[numTeams * (numTeams - 1) / 2 * numPlayed];
+      
+      boolean[] played = new boolean[numTeams % 2 == 0 ? numTeams - 1 : numTeams];
+      played[0] = true;
+      
+      for (int x = 1; x < numPlayed; x++) {
+         if (random) {
+            int randomWeek = 0;
+            while (played[randomWeek]) {
+               randomWeek = rand.nextInt(numTeams);
+            }
+            
+            played[randomWeek] = true;
+         }
+         
+         for (int y = 0; y < numTeams / 2; y++) {
+            
+         }
       }
    }
 }
